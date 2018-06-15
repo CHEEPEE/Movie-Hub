@@ -128,6 +128,7 @@ public class MainActivity extends AppCompatActivity {
         return connectivityManager.getActiveNetworkInfo() != null && connectivityManager.getActiveNetworkInfo().isConnected();
     }
 
+    
     void loadfromDB(){
         String movieListJson="";
         Cursor cursonJsonLoader = DatabaseHelper.rawQuery("Select movie_list_json from movies;");
@@ -135,7 +136,6 @@ public class MainActivity extends AppCompatActivity {
         if (cursonJsonLoader!=null && cursonJsonLoader.getCount()!= 0){
             if (cursonJsonLoader.moveToFirst()){
                 do {
-
                     movieListJson = cursonJsonLoader.getString(cursonJsonLoader.getColumnIndex("movie_list_json"));
                 }while (cursonJsonLoader.moveToNext());
             }

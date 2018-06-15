@@ -5,9 +5,14 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.module.AppGlideModule;
+import com.kennethjiepadasas.moviehub.moviehub.GlideApp;
+import com.kennethjiepadasas.moviehub.moviehub.GlideAppModule;
 import com.kennethjiepadasas.moviehub.moviehub.R;
 import com.kennethjiepadasas.moviehub.moviehub.model.MoviesModel;
 
@@ -27,12 +32,14 @@ public class MovieRecyclerViewAdapter extends RecyclerView.Adapter<MovieRecycler
     public class MyViewHolder extends RecyclerView.ViewHolder{
 
        public TextView movieTItle,movieOverview;
+       public ImageView posterImage;
 
 
         public MyViewHolder(View view){
             super(view);
             movieTItle = (TextView) view.findViewById(R.id.movieTitle);
             movieOverview = (TextView) view.findViewById(R.id.movieOverview);
+            posterImage =(ImageView) view.findViewById(R.id.posterImage);
 
         }
     }
@@ -55,7 +62,7 @@ public class MovieRecyclerViewAdapter extends RecyclerView.Adapter<MovieRecycler
         MoviesModel moviesModel = moviesModels.get(position);
         holder.movieTItle.setText(moviesModel.getTitle());
         holder.movieOverview.setText(moviesModel.getOverview());
-
+        GlideApp.with(context).load(posterPrePath+moviesModel.getPoster_path()).diskCacheStrategy(DiskCacheStrategy.ALL).into(holder.posterImage);
     }
 
     @Override
