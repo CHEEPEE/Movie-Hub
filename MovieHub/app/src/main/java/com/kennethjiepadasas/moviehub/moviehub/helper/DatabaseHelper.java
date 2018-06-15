@@ -33,7 +33,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         this.context = context;
 
     }
-
     private static void initialize(Context context, String databaseName) {
         if (instance == null) {
 

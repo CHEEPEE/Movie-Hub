@@ -2,7 +2,9 @@ package com.kennethjiepadasas.moviehub.moviehub;
 
 import android.app.Application;
 import android.content.Context;
+import android.database.Cursor;
 import android.net.ConnectivityManager;
+import android.os.NetworkOnMainThreadException;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
@@ -10,6 +12,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 
+import com.kennethjiepadasas.moviehub.moviehub.helper.DatabaseHelper;
 import com.kennethjiepadasas.moviehub.moviehub.model.MoviesModel;
 import com.kennethjiepadasas.moviehub.moviehub.views.MovieRecyclerViewAdapter;
 
@@ -38,22 +41,33 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<MoviesModel> moviesModelArrayList = new ArrayList<>();
     MovieRecyclerViewAdapter movieRecyclerViewAdapter;
     RecyclerView rvMovieList;
+    Context context;
     String url = "https://api.themoviedb.org/3/discover/movie?api_key=38c21cee709b82cfe7ea0ab324d2f88c&language=en-US&sort_by=popularity.desc&include_adult=false&include_video=false&page=1";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         rvMovieList = (RecyclerView) findViewById(R.id.rv_movielist);
-        try {
-            getMovies();
-        }catch (IOException e){
-            System.out.print("failed " + e);
-        }
+        context = MainActivity.this;
+        DatabaseHelper.getInstance(context,"moviehub.db");
+
+
         client.newBuilder();
-        movieRecyclerViewAdapter = new MovieRecyclerViewAdapter(MainActivity.this,moviesModelArrayList);
-        RecyclerView.LayoutManager layoutManager = new GridLayoutManager( MainActivity.this,2);
+        movieRecyclerViewAdapter = new MovieRecyclerViewAdapter(context,moviesModelArrayList);
+        RecyclerView.LayoutManager layoutManager = new GridLayoutManager( context,2);
         rvMovieList.setLayoutManager(layoutManager);
         rvMovieList.setAdapter(movieRecyclerViewAdapter);
+
+        if(isNetworkAvailable(context)){
+            try {
+                getMovies();
+            }catch (IOException e){
+                System.out.print("failed " + e);
+            }
+        }else {
+            loadfromDB();
+        }
+
     }
 
     void getMovies() throws IOException {
@@ -72,14 +86,18 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
 
-                final String myResponse = response.body().string();
+                final String jsonResponse = response.body().string();
+                String jsonValidate = jsonResponse.toString().replace("'","#23d5kjh");
+                String insertRespose = "Insert Into movies (movie_list_json) values(\""+jsonValidate.replace("\"","'")+"\");";
+                DatabaseHelper.execute(insertRespose);
+
                 MainActivity.this.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        System.out.println(myResponse);
+                        System.out.println(jsonResponse);
                         try {
 
-                            JSONObject json = new JSONObject(myResponse);
+                            JSONObject json = new JSONObject(jsonResponse);
                             JSONArray jsonArray = json.getJSONArray("results");
                             System.out.println(json.getJSONArray("results"));
                             for (int i = 0; i<jsonArray.length();i++){
@@ -109,14 +127,38 @@ public class MainActivity extends AppCompatActivity {
         final ConnectivityManager connectivityManager = ((ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE));
         return connectivityManager.getActiveNetworkInfo() != null && connectivityManager.getActiveNetworkInfo().isConnected();
     }
-    public boolean isInternetAvailable() {
-        try {
-            final InetAddress address = InetAddress.getByName("www.google.com");
-            return !address.equals("");
-        } catch (UnknownHostException e) {
-            // Log error
-        }
-        return false;
-    }
 
+    void loadfromDB(){
+        String movieListJson="";
+        Cursor cursonJsonLoader = DatabaseHelper.rawQuery("Select movie_list_json from movies;");
+        cursonJsonLoader.moveToFirst();
+        if (cursonJsonLoader!=null && cursonJsonLoader.getCount()!= 0){
+            if (cursonJsonLoader.moveToFirst()){
+                do {
+
+                    movieListJson = cursonJsonLoader.getString(cursonJsonLoader.getColumnIndex("movie_list_json"));
+                }while (cursonJsonLoader.moveToNext());
+            }
+        }
+        try {
+            System.out.println(movieListJson.substring(1370,movieListJson.length()));
+            String aux =movieListJson.replace("'","\"");
+            JSONObject json = new JSONObject(aux.replace("#23d5kjh","'"));
+            JSONArray jsonArray = json.getJSONArray("results");
+            System.out.println(json.getJSONArray("results"));
+            for (int i = 0; i<jsonArray.length();i++){
+                MoviesModel moviesModel = new MoviesModel();
+                moviesModel.setTitle(jsonArray.getJSONObject(i).getString("title"));
+                moviesModel.setId(jsonArray.getJSONObject(i).getInt("id"));
+                moviesModel.setPoster_path(jsonArray.getJSONObject(i).getString("poster_path"));
+                moviesModel.setVote_average(jsonArray.getJSONObject(i).getInt("vote_average"));
+                moviesModel.setOverview(jsonArray.getJSONObject(i).getString("overview"));
+                moviesModelArrayList.add(moviesModel);
+                System.out.println(jsonArray.getJSONObject(i).getString("title"));
+            }
+            movieRecyclerViewAdapter.notifyDataSetChanged();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
 }

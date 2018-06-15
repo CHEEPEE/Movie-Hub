@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.kennethjiepadasas.moviehub.moviehub.R;
 import com.kennethjiepadasas.moviehub.moviehub.model.MoviesModel;
 
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 public class MovieRecyclerViewAdapter extends RecyclerView.Adapter<MovieRecyclerViewAdapter.MyViewHolder> {
     private ArrayList<MoviesModel> moviesModels;
     private Context context;
+    String posterPrePath = "https://image.tmdb.org/t/p/w500/";
 
 
 
@@ -53,6 +55,7 @@ public class MovieRecyclerViewAdapter extends RecyclerView.Adapter<MovieRecycler
         MoviesModel moviesModel = moviesModels.get(position);
         holder.movieTItle.setText(moviesModel.getTitle());
         holder.movieOverview.setText(moviesModel.getOverview());
+
     }
 
     @Override
