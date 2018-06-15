@@ -15,6 +15,9 @@ import android.support.v7.widget.StaggeredGridLayoutManager;
 import com.kennethjiepadasas.moviehub.moviehub.helper.DatabaseHelper;
 import com.kennethjiepadasas.moviehub.moviehub.model.MoviesModel;
 import com.kennethjiepadasas.moviehub.moviehub.views.MovieRecyclerViewAdapter;
+import com.treebo.internetavailabilitychecker.InternetAvailabilityChecker;
+import com.treebo.internetavailabilitychecker.InternetConnectivityListener;
+
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -36,13 +39,15 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements InternetConnectivityListener {
     OkHttpClient client = new OkHttpClient();
     ArrayList<MoviesModel> moviesModelArrayList = new ArrayList<>();
     MovieRecyclerViewAdapter movieRecyclerViewAdapter;
     RecyclerView rvMovieList;
     Context context;
     String url = "https://api.themoviedb.org/3/discover/movie?api_key=38c21cee709b82cfe7ea0ab324d2f88c&language=en-US&sort_by=popularity.desc&include_adult=false&include_video=false&page=1";
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,25 +55,29 @@ public class MainActivity extends AppCompatActivity {
         rvMovieList = (RecyclerView) findViewById(R.id.rv_movielist);
         context = MainActivity.this;
         DatabaseHelper.getInstance(context,"moviehub.db");
-
-
+        InternetAvailabilityChecker.init(this);
         client.newBuilder();
         movieRecyclerViewAdapter = new MovieRecyclerViewAdapter(context,moviesModelArrayList);
         RecyclerView.LayoutManager layoutManager = new GridLayoutManager( context,2);
         rvMovieList.setLayoutManager(layoutManager);
         rvMovieList.setAdapter(movieRecyclerViewAdapter);
 
-        if(isNetworkAvailable(context)){
-            try {
-                getMovies();
-            }catch (IOException e){
-                System.out.print("failed " + e);
-            }
-        }else {
-            loadfromDB();
-        }
+        getMovieList();
 
     }
+    @Override
+    public void onInternetConnectivityChanged(boolean isConnected) {
+        //do something based on connectivity
+        if (isConnected){
+                try {
+                    moviesModelArrayList.clear();
+                    getMovies();
+                }catch (IOException e){
+                    System.out.print("failed " + e);
+                }
+        }
+    }
+
 
     void getMovies() throws IOException {
 
@@ -128,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
         return connectivityManager.getActiveNetworkInfo() != null && connectivityManager.getActiveNetworkInfo().isConnected();
     }
 
-    
+
     void loadfromDB(){
         String movieListJson="";
         Cursor cursonJsonLoader = DatabaseHelper.rawQuery("Select movie_list_json from movies;");
@@ -159,6 +168,18 @@ public class MainActivity extends AppCompatActivity {
             movieRecyclerViewAdapter.notifyDataSetChanged();
         } catch (JSONException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void getMovieList(){
+        if(isNetworkAvailable(context)){
+            try {
+                getMovies();
+            }catch (IOException e){
+                System.out.print("failed " + e);
+            }
+        }else {
+            loadfromDB();
         }
     }
 }
