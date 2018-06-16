@@ -3,9 +3,16 @@ package com.kennethjiepadasas.moviehub.moviehub.model;
 public class MoviesModel {
     private int id;
     private String title;
-    private int vote_average;
+    private double vote_average;
     private String poster_path;
     private String overview;
+    private String release_date;
+    private long popularity;
+    private double voteCount;
+
+    public double getVoteCount(){
+        return voteCount;
+    }
     public String getTitle(){
         return title;
     }
@@ -15,12 +22,17 @@ public class MoviesModel {
     public int getid(){
         return id;
     }
-    public int getVote_average(){
+    public double getVote_average(){
         return vote_average;
     }
     public String getOverview(){
         return overview;
     }
+    public String getRelease_date(){return release_date;}
+    public long getPopularity(){
+        return popularity;
+    }
+
     public void setOverview(String overview){
         this.overview = overview;
     }
@@ -33,11 +45,20 @@ public class MoviesModel {
         this.title = title;
     }
 
-    public void setVote_average(int vote_average){
+    public void setVote_average(double vote_average){
         this.vote_average = vote_average;
     }
 
     public void setPoster_path(String poster_path){
         this.poster_path = poster_path;
     }
+    public void setRelease_date(String release_date){this.release_date = release_date;}
+    public void setPopularity(long popularity){
+        this.popularity = popularity;
+    }
+    public void setVoteCount(double voteCount){
+        this.voteCount = voteCount;
+    }
+
+
 }

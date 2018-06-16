@@ -27,18 +27,18 @@ public class MovieRecyclerViewAdapter extends RecyclerView.Adapter<MovieRecycler
     private Context context;
     String posterPrePath = "https://image.tmdb.org/t/p/w500/";
 
-
-
     public class MyViewHolder extends RecyclerView.ViewHolder{
 
-       public TextView movieTItle,movieOverview;
+       public TextView movieTItle,movieOverview,averageVote,readmore;
        public ImageView posterImage;
 
 
         public MyViewHolder(View view){
             super(view);
             movieTItle = (TextView) view.findViewById(R.id.movieTitle);
+            readmore = (TextView) view.findViewById(R.id.readmore);
             movieOverview = (TextView) view.findViewById(R.id.movieOverview);
+            averageVote = (TextView) view.findViewById(R.id.averageVote);
             posterImage =(ImageView) view.findViewById(R.id.posterImage);
 
         }
@@ -59,15 +59,32 @@ public class MovieRecyclerViewAdapter extends RecyclerView.Adapter<MovieRecycler
 
     @Override
     public void onBindViewHolder(final MyViewHolder holder, final int position) {
-        MoviesModel moviesModel = moviesModels.get(position);
+        final MoviesModel moviesModel = moviesModels.get(position);
         holder.movieTItle.setText(moviesModel.getTitle());
         holder.movieOverview.setText(moviesModel.getOverview());
-        GlideApp.with(context).load(posterPrePath+moviesModel.getPoster_path()).diskCacheStrategy(DiskCacheStrategy.ALL).into(holder.posterImage);
+        holder.averageVote.setText(moviesModel.getVote_average()+"");
+        holder.readmore.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mOnItemClickLitener.onItemClick(v,position,moviesModel);
+            }
+        });
+        GlideApp.with(context).load(posterPrePath+moviesModel.getPoster_path()).diskCacheStrategy(DiskCacheStrategy.ALL).centerCrop().into(holder.posterImage);
     }
 
     @Override
     public int getItemCount() {
         return moviesModels.size();
+    }
+    public interface OnItemClickLitener {
+        void onItemClick(View view, int position,MoviesModel moviesModel);
+
+    }
+
+    private OnItemClickLitener mOnItemClickLitener;
+
+    public void setOnItemClickListener(OnItemClickLitener mOnItemClickLitener) {
+        this.mOnItemClickLitener = mOnItemClickLitener;
     }
 }
 
