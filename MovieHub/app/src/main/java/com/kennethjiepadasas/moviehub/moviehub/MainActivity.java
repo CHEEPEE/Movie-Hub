@@ -115,7 +115,7 @@ public class MainActivity extends AppCompatActivity implements InternetConnectiv
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
-
+                moviesModelArrayList.clear();
                 final String jsonResponse = response.body().string();
                 String jsonValidate = jsonResponse.toString().replace("'","#23d5kjh");
                 String insertRespose = "Insert Into movies (movie_list_json) values(\""+jsonValidate.replace("\"","'")+"\");";
